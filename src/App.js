@@ -1,23 +1,23 @@
-import './App.css';
-import Nav from './Nav';
-import Header from './Header';
-import Card_contaier from './Card_container';
-import Footer from './Footer';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { useState } from 'react';
+
+
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import Card from "./Components/Card";
+import Navbar from "./Components/Navbar";
+import Header from "./Components/Header";
+import Footer from "./Components/Footer";
 
 function App() {
-  
-
-const [cart,setCart] = useState(0);
-
   return (
-    <div className="App">
-      <Nav cart={cart} setCart={setCart}/>
+    <><div className="fixed-top">
+      <Navbar/>
       <Header />
-      <Card_contaier cart={cart} setCart={setCart} />
-      <Footer />
-    </div>
+      </div>
+      <div className="d-flex flex-column justify-content-center align-items-center cardcss">
+      <Card  />
+      </div>
+      <Footer/>
+    </>
   );
 }
 
