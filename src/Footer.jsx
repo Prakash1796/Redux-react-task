@@ -1,10 +1,12 @@
-// Footer.js
 import React from 'react';
 
 const Footer = () => {
   return (
-    <footer className="footer fixed-bottom">
-      <p>© 2024 Your Website Name</p>
+    <footer   className="bg-dark text-white text-center py-4">
+      <div className="container mx-auto">
+        <p>&copy; 2024 Public Library. All rights reserved.</p>
+        <p>Designed and built  by Prakash K</p>
+      </div>
     </footer>
   );
 };

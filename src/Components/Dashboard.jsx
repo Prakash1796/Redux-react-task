@@ -1,64 +1,60 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
-import List from "./List";
-import { useContextBox } from "../ContextProvider";
+import Card from "./Card";
+import { axiosService } from "../Utilities/Apiservices";
+import { Link } from "react-router-dom";
 
-const DashBoard = () => {
-const {users,setUsers} = useContextBox()
-const getUser = async()=>{
-  try {
-    const usersRepo = await axios.get("https://65cc6905dd519126b83e67c2.mockapi.io/userData");
-    // console.log(usersRepo.data);  
-    setUsers(usersRepo.data)
-  } catch (error) {
-    console.log(error);
-  }
-}
-useEffect(()=>{
-  getUser();
-},[])
-  return (  
-    <div className="container-fluid">
-      <div className="row">
-        <div className="col-lg-12">
-          <h1>Dash Board</h1>
-          <div className="row">
-            <div className="col-lg-12">
-              <div className="main-box clearfix">
-                <div className="table-responsive">
-                  <table className="table user-list">
-                    <thead>
-                      <tr>
-                        <th>
-                          <span>User</span>
-                        </th>
-                        {/* <th className="text-center">
-                          <span>Status</span>
-                        </th> */}
-                        <th>
-                          <span>Email</span>
-                        </th>
-                        <th>
-                          <span>Address</span>
-                        </th>
-                        {/* <th>
-                          <span>Phone</span>
-                        </th> */}
-                        <th>&nbsp;</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    {users.map((user,index)=><List key={index} user={user} getUser={getUser}  />)} 
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+const Dashboard = () => {
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState([]);
+
+  const getData = async () => {
+    try {
+      const res = await axiosService.get("/users");
+      if (res.status === 200) {
+        setUser(res.data);
+        setLoading(false);
+        console.log(user);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  return (
+    <div className="row py-4 mx-2 justify-center">
+      {loading ? (
+        <>
+          <img
+            className="w-52 justify-center flex"
+            src="https://cdn.dribbble.com/users/1238723/screenshots/4794365/loading.gif"
+          />
+          <h1 className="justify-center flex font-bold text-lg">
+            Loading ...!
+          </h1>
+        </>
+      ) : user.length === 0 ? (
+        <>
+          <h1
+            className="justify-center mt-5 flex font-medium"
+            style={{ fontSize: "30px" }}
+          >
+            Card is empty
+          </h1>
+          <div className="tg">
+            <button className="btn btn-primary m-3">
+              <Link to={`/create`}>Create</Link>
+            </button>
           </div>
-        </div>
-      </div>
+        </>
+      ) : (
+        user.map((data) => <Card key={data.id} data={data} getData={getData} />)
+      )}
     </div>
   );
 };
 
-export default DashBoard;
+export default Dashboard;

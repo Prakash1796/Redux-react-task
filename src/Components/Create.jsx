@@ -1,333 +1,206 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import Button from "react-bootstrap/Button";
+import Col from "react-bootstrap/Col";
+import Form from "react-bootstrap/Form";
+import Row from "react-bootstrap/Row";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { axiosService } from "../Utilities/Apiservices";
+import { useNavigate } from "react-router-dom";
 
-const Create = () => {
-  const [formData, setFormData] = useState({
-    username: "",
-    name: "",
-    avatar: "",
-    email: "",
-    address: {
-      street: "",
-      city: "",
-      zipcode: "",
+function Create() {
+  const navigate = useNavigate();
+  let formik = useFormik({
+    initialValues: {
+      book: {
+        title: "",
+        author: "",
+        ISBN: "",
+        pub: "",
+        img: "",
+        about: "",
+      },
+      author: {
+        name: "",
+        birth: "",
+        bio: "",
+        img: "",
+      },
     },
-    phoneNumber: "",
-    birthday: "",
-    age:'',
-    website: "",
-    company: {
-      name: "",
-      role: "",
-      experience: "",
-      about: "",
+    validationSchema: Yup.object().shape({
+      book: Yup.object().shape({
+        title: Yup.string().required("Title is Required"),
+        ISBN: Yup.string()
+          .required("ISBN number required")
+          .matches(/^\d{13}$/, "Enter a valid 13 - Digit ISBN Number"),
+        pub: Yup.date().required("Published date Required"),
+        about: Yup.string().required("About Book is required"),
+        img: Yup.string().required("Image URL is required"),
+      }),
+      author: Yup.object().shape({
+        name: Yup.string().required("Author name is Required"),
+        birth: Yup.date().required("birth date Required"),
+        bio: Yup.string().required("Biography is required"),
+        img: Yup.string().required("Image URL is required"),
+      }),
+    }),
+    onSubmit: async (values) => {
+      try {
+        let res = await axiosService.post("/users", values);
+        if (res.status == 201) {
+          navigate("/dashboard");
+          console.log(res.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
     },
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-      setFormData({
-        ...formData,
-        [parent]: {
-          ...formData[parent],
-          [child]: value,
-        },
-      });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const usersRepo = await axios.post(
-        "https://65cc6905dd519126b83e67c2.mockapi.io/userData",
-        formData
-      );
-      console.log("Data sent successfully!", usersRepo.data);
-      alert("Used Data Successfully Created");
-      setFormData({
-        username: "",
-        name: "",
-        avatar: "",
-        email: "",
-        address: {
-          street: "",
-          city: "",
-          zipcode: "",
-        },
-        phoneNumber: "",
-        birthday: "",
-        age:'',
-        website: "",
-        company: {
-          name: "",
-          role: "",
-          experience: "",
-          about: "",
-        },
-      });
-    } catch (error) {
-      console.error("Error sending data:", error);
-    }
-  };
-
   return (
-    <div className="container-xl px-4 mt-4 ">
-      <hr className="mt-0 mb-4" />
-      <div className="row">
-        <div className="col-xl-8">
-          <div className="card mb-4">
-            <div className="card-header">Create Account Details</div>
-            <div className="card-body">
-              <form onSubmit={handleSubmit} className="create">
-                <div className="mb-3">
-                  <label className="small mb-1" htmlFor="inputUsername">
-                    Username (how your name will appear to other users on the
-                    site)
-                  </label>
-                  <input
-                    className="form-control"
-                    id="inputUsername"
-                    type="text"
-                    placeholder="Enter your username"
-                    onChange={handleChange}
-                    name="username"
-                    value={formData.username}
-                  />
-                </div>
-                <div className="row gx-3 mb-3">
-                  <div className="col-md-6">
-                    <label className="small mb-1" htmlFor="inputFullName">
-                      Full Name
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputFullName"
-                      type="text"
-                      placeholder="Enter your full name"
-                      onChange={handleChange}
-                      name="name"
-                      value={formData.name}
-                    />
-                  </div>
+    <Form
+      className="container mt-3 mb-3"
+      style={{ maxWidth: "780px" }}
+      onSubmit={formik.handleSubmit}
+    >
+      <h1 className="text-xl font-bold underline">Book Details</h1>
+      <Form.Group className="mb-3" controlId="formTitle">
+        <Form.Label>Title</Form.Label>
+        <Form.Control
+          type="text"
+          placeholder="Enter Book Title"
+          name="book.title"
+          onChange={formik.handleChange}
+          value={formik.values.book.title}
+          onBlur={formik.handleBlur}
+        />
+        {formik.touched.book?.title && formik.errors.book?.title ? (
+          <div style={{ color: "red" }}>{formik.errors.book.title}</div>
+        ) : null}
+      </Form.Group>
+      <Row className="mb-3">
+        <Form.Group as={Col} controlId="formISBN">
+          <Form.Label>ISBN</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="ISBN number"
+            name="book.ISBN"
+            onChange={formik.handleChange}
+            value={formik.values.book.ISBN}
+            onBlur={formik.handleBlur}
+          />
+          {formik.touched.book?.ISBN && formik.errors.book?.ISBN ? (
+            <div style={{ color: "red" }}>{formik.errors.book.ISBN}</div>
+          ) : null}
+        </Form.Group>
+        <Form.Group as={Col} controlId="formPublished">
+          <Form.Label>Published</Form.Label>
+          <Form.Control
+            type="date"
+            name="book.pub"
+            onChange={formik.handleChange}
+            value={formik.values.book.pub}
+            onBlur={formik.handleBlur}
+          />
+          {formik.touched.book?.pub && formik.errors.book?.pub ? (
+            <div style={{ color: "red" }}>{formik.errors.book.pub}</div>
+          ) : null}
+        </Form.Group>
+      </Row>
+      <Form.Group className="mb-3" controlId="formImg">
+        <Form.Label>Book Cover Image</Form.Label>
+        <Form.Control
+          type="url"
+          placeholder="Enter image URL"
+          name="book.img"
+          onChange={formik.handleChange}
+          value={formik.values.book.img}
+          onBlur={formik.handleBlur}
+        />
+        {formik.touched.book?.img && formik.errors.book?.img ? (
+          <div style={{ color: "red" }}>{formik.errors.book.img}</div>
+        ) : null}
+      </Form.Group>
+      <Form.Group className="mb-3" controlId="formAbout">
+        <Form.Label>About</Form.Label>
+        <Form.Control
+          as="textarea"
+          placeholder="Enter about book"
+          rows={3}
+          name="book.about"
+          onChange={formik.handleChange}
+          value={formik.values.book.about}
+          onBlur={formik.handleBlur}
+        />
+        {formik.touched.book?.about && formik.errors.book?.about ? (
+          <div style={{ color: "red" }}>{formik.errors.book.about}</div>
+        ) : null}
+      </Form.Group>
+      <h1 className="text-xl font-bold underline">Author Details</h1>
+      <Row className="mb-3">
+        <Form.Group as={Col} controlId="formAuthorName">
+          <Form.Label>Author Name</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Enter author name"
+            name="author.name"
+            onChange={formik.handleChange}
+            value={formik.values.author.name}
+            onBlur={formik.handleBlur}
+          />
+          {formik.touched.author?.name && formik.errors.author?.name ? (
+            <div style={{ color: "red" }}>{formik.errors.author.name}</div>
+          ) : null}
+        </Form.Group>
+        <Form.Group as={Col} controlId="formAuthorBirth">
+          <Form.Label>Date of Birth</Form.Label>
+          <Form.Control
+            type="date"
+            name="author.birth"
+            onChange={formik.handleChange}
+            value={formik.values.author.birth}
+            onBlur={formik.handleBlur}
+          />
+          {formik.touched.author?.name && formik.errors.author?.name ? (
+            <div style={{ color: "red" }}>{formik.errors.author.name}</div>
+          ) : null}
+        </Form.Group>
+      </Row>
+      <Form.Group className="mb-3" controlId="formAuthorImg">
+        <Form.Label>Author Image URL</Form.Label>
+        <Form.Control
+          type="text"
+          placeholder="Enter author image URL"
+          name="author.img"
+          onChange={formik.handleChange}
+          value={formik.values.author.img}
+          onBlur={formik.handleBlur}
+        />
+        {formik.touched.author?.img && formik.errors.author?.img ? (
+          <div style={{ color: "red" }}>{formik.errors.author.img}</div>
+        ) : null}
+      </Form.Group>
+      <Form.Group className="mb-3" controlId="formBio">
+        <Form.Label>Biography</Form.Label>
+        <Form.Control
+          as="textarea"
+          placeholder="Enter biography"
+          rows={3}
+          name="author.bio"
+          onChange={formik.handleChange}
+          value={formik.values.author.bio}
+          onBlur={formik.handleBlur}
+        />
+        {formik.touched.author?.bio && formik.errors.author?.bio ? (
+          <div style={{ color: "red" }}>{formik.errors.author.bio}</div>
+        ) : null}
+      </Form.Group>
 
-                  <div className="col-md-6">
-                    <label className="small mb-1" htmlFor="inputAvatar">
-                      Avatar URL
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputAvatar"
-                      type="text"
-                      placeholder="Enter URL for your avatar"
-                      onChange={handleChange}
-                      name="avatar"
-                      value={formData.avatar}
-                    />
-                  </div>
-                </div>
-
-                <div className="row gx-3 mb-3">
-                  <div className="col-md-6">
-                    <label className="small mb-1" htmlFor="inputEmail">
-                      Email address
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputEmail"
-                      type="email"
-                      placeholder="name@example.com"
-                      onChange={handleChange}
-                      name="email"
-                      value={formData.email}
-                    />
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="small mb-1" htmlFor="inputWebsite">
-                      Website
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputWebsite"
-                      type="text"
-                      placeholder="Enter your website"
-                      onChange={handleChange}
-                      name="website"
-                      value={formData.website}
-                    />
-                  </div>
-                </div>
-                <div className="row gx-3 mb-3">
-                  <div className="col-md-6">
-                    <label className="small mb-1" htmlFor="inputPhone">
-                      Phone number
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputPhone"
-                      type="tel"
-                      placeholder="Enter your phone number"
-                      onChange={handleChange}
-                      name="phoneNumber"
-                      value={formData.phoneNumber}
-                    />
-                  </div>
-
-                  <div className="col-md-3">
-                    <label className="small mb-1" htmlFor="inputBirthday">
-                      Birthday
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputBirthday"
-                      type="date"
-                      name="birthday"
-                      onChange={handleChange}
-                      value={formData.birthday}
-                    />
-                  </div>
-                  <div className="col-md-3">
-                    <label className="small mb-1" htmlFor="inputBirthday">
-                      Age
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputBirthday"
-                      type="number"
-                      name="age"
-                      placeholder="Enter Age"
-                      onChange={handleChange}
-                      value={formData.age}
-                    />
-                  </div>
-                </div>
-
-                <div className="row gx-3 mb-3">
-                  <div className="col-md-4">
-                    <label className="small mb-1" htmlFor="inputStreet">
-                      Street
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputStreet"
-                      type="text"
-                      placeholder="Enter your street"
-                      onChange={handleChange}
-                      name="address.street" // Corrected name attribute
-                      value={formData.address.street}
-                    />
-                  </div>
-                  <div className="col-md-4">
-                    <label className="small mb-1" htmlFor="inputCity">
-                      City
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputCity"
-                      type="text"
-                      placeholder="Enter your city"
-                      onChange={handleChange}
-                      name="address.city" // Corrected name attribute
-                      value={formData.address.city}
-                    />
-                  </div>
-                  <div className="col-md-4">
-                    <label className="small mb-1" htmlFor="inputZip">
-                      Zip-code
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputZip"
-                      type="text"
-                      placeholder="Enter your zipcode"
-                      onChange={handleChange}
-                      name="address.zipcode" // Corrected name attribute
-                      value={formData.address.zipcode}
-                    />
-                  </div>
-                </div>
-
-                <div className="row gx-3 mb-3">
-                  <div className="col-md-6">
-                    <label className="small mb-1" htmlFor="inputOrgName">
-                      Organization name (Company Name)
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputOrgName"
-                      type="text"
-                      placeholder="Enter your organization name"
-                      onChange={handleChange}
-                      name="company.name" // Corrected name attribute
-                      value={formData.company.name}
-                    />
-                  </div>
-
-                  <div className="col-md-4">
-                    <label className="small mb-1" htmlFor="inputCatchPhrase">
-                      Job role
-                    </label>
-                    <input
-                      className="form-control"
-                      id="inputCatchPhrase"
-                      type="text"
-                      placeholder="Enter your catch phrase"
-                      onChange={handleChange}
-                      name="company.role"
-                      value={formData.company.role}
-                    />
-                  </div>
-                  <div className="col-md-2">
-                    <label className="small mb-1" htmlFor="inputCatchPhrase">
-                      Experience
-                    </label>
-                    <input
-                      className="form-control"
-                      type="number"
-                      placeholder="In years"
-                      onChange={handleChange}
-                      name="company.experience"
-                      value={formData.company.experience}
-                    />
-                  </div>
-                </div>
-                <div className="row gx-3 mb-3">
-                  <div className="col">
-                    <label className="small mb-1" htmlFor="inputAbout">
-                      About user
-                    </label>
-                    <textarea
-                      className="form-control"
-                      id="inputAbout"
-                      placeholder="Enter abount User"
-                      style={{
-                        height: "100px",
-                        width: "100%",
-                      }} // Set the width here
-                      onChange={handleChange}
-                      name="company.about" // Corrected name attribute
-                      value={formData.company.about}
-                    >
-                      Enter about user
-                    </textarea>
-                  </div>
-                </div>
-
-                <button className="btn btn-primary" type="submit">
-                  Submit
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      <Button className="btn bg-blue-900" type="submit">
+        Submit
+      </Button>
+    </Form>
   );
-};
+}
 
 export default Create;
